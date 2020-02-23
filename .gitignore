@@ -2,4 +2,4 @@ main
 ErrorLogs.log
 eventlogger.log
 cmd/gmserver/gmserver
-.vscode
+./.vscode
