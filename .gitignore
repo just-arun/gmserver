@@ -1,3 +1,4 @@
 main
 ErrorLogs.log
 eventlogger.log
+cmd/gmserver/gmserver
