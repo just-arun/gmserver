@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gmserver/database"
 	"gmserver/models"
+	"gmserver/pkg"
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,12 +22,7 @@ func GetAllWithPost(client *mongo.Client) http.HandlerFunc {
 
 		collection, ctx := database.CollectionFun(client, database.CollectionList().Users)
 		cursor, err := collection.Aggregate(ctx, []bson.M{lookingup, grouping})
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": ` + err.Error() + `"}`))
-			panic(err)
-		}
+		pkg.ErrCheck(w, err)
 		for cursor.Next(ctx) {
 			var user models.UserModel
 			err := cursor.Decode(&user)
@@ -42,12 +38,7 @@ func GetAllWithPost(client *mongo.Client) http.HandlerFunc {
 		fmt.Println(users)
 		w.WriteHeader(http.StatusOK)
 		jsonData, err := json.Marshal(users)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": ` + err.Error() + `"}`))
-			panic(err)
-		}
+		pkg.ErrCheck(w, err)
 		w.Write(jsonData)
 	}
 }

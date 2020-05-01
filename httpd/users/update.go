@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gmserver/database"
 	"gmserver/models"
+	"gmserver/pkg"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -21,18 +22,10 @@ func Update(client *mongo.Client) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		params := mux.Vars(r)
 		id, err := primitive.ObjectIDFromHex(params["id"])
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
-		}
+		pkg.ErrCheck(w, err)
 		var user models.UserModel
 		err = json.NewDecoder(r.Body).Decode(&user)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
-		}
+		pkg.ErrCheck(w, err)
 		user.Password = ""
 		user.ID = id
 
@@ -44,12 +37,7 @@ func Update(client *mongo.Client) http.HandlerFunc {
 		query := bson.M{"$set": user}
 		collection, ctx := database.CollectionFun(client, database.CollectionList().Users)
 		err = collection.FindOneAndUpdate(ctx, filter, query).Decode(&updatedUser)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
-			return
-		}
+		pkg.ErrCheck(w, err)
 		fmt.Println(updatedUser)
 		w.WriteHeader(http.StatusOK)
 	}

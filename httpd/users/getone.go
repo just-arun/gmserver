@@ -2,6 +2,7 @@ package users
 
 import (
 	"encoding/json"
+	"gmserver/pkg"
 	"net/http"
 
 	"gmserver/database"
@@ -19,11 +20,7 @@ func GetOne(client *mongo.Client) http.HandlerFunc {
 		params := mux.Vars(r)
 		var user models.UserModel
 		id, err := primitive.ObjectIDFromHex(params["id"])
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
-		}
+		pkg.ErrCheck(w, err)
 		// creating filter
 		filter := models.UserModel{ID: id}
 		filterOptions := options.FindOne()
@@ -31,18 +28,10 @@ func GetOne(client *mongo.Client) http.HandlerFunc {
 		//search for data in database
 		collection, ctx := database.CollectionFun(client, database.CollectionList().Users)
 		err = collection.FindOne(ctx, filter, filterOptions).Decode(&user)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
-		}
+		pkg.ErrCheck(w, err)
 		user.Password = ""
 		resu, err := json.Marshal(user)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
-		}
+		pkg.ErrCheck(w, err)
 		w.WriteHeader(http.StatusOK)
 		w.Write(resu)
 	}

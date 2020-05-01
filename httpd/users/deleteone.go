@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gmserver/database"
 	"gmserver/models"
+	"gmserver/pkg"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -16,18 +17,12 @@ func DeleteOne(client *mongo.Client) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		params := mux.Vars(r)
 		id, err := primitive.ObjectIDFromHex(params["id"])
-		if err != nil {
-			panic(err)
-		}
+		pkg.ErrCheck(w, err)
 		fmt.Println(id)
 		filter := models.UserModel{ID: id}
 		collection, ctx := database.CollectionFun(client, database.CollectionList().Users)
 		result, err := collection.DeleteOne(ctx, filter)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{ "message": ` + err.Error() + `"}`))
-		}
+		pkg.ErrCheck(w, err)
 		fmt.Println(result.DeletedCount)
 		w.WriteHeader(http.StatusOK)
 	}
